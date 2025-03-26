@@ -2,6 +2,7 @@ const Token = @import("token.zig").Token;
 const TokenType = @import("token.zig").TokenType;
 const Tokens = @import("token.zig").Tokens;
 const Errors = @import("token.zig").Errors;
+const ProgramErrors = @import("main.zig").Errors;
 const std = @import("std");
 const ArrayList = std.ArrayList;
 
@@ -66,10 +67,6 @@ pub const Scanner = struct {
         }
 
         try self.tokens.append(Token.init(.EOF, "", null, self.line));
-
-        if (self.hadError) {
-            return Errors.ScannerError;
-        }
     }
 
     fn scanToken(self: *Scanner) !void {
