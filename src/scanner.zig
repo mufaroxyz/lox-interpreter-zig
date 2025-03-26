@@ -5,7 +5,7 @@ const Errors = @import("token.zig").Errors;
 const std = @import("std");
 const ArrayList = std.ArrayList;
 
-pub const ScanError = error {
+pub const ScanError = error{
     UnexpectedCharacter,
 };
 
@@ -17,13 +17,7 @@ pub const Scanner = struct {
     line: usize,
 
     pub fn init(source: []const u8, allocator: std.mem.Allocator) Scanner {
-        return Scanner {
-            .source = source,
-            .start = 0,
-            .current = 0,
-            .line = 0,
-            .tokens = ArrayList(Token).init(allocator)
-        };
+        return Scanner{ .source = source, .start = 0, .current = 0, .line = 0, .tokens = ArrayList(Token).init(allocator) };
     }
 
     pub fn deinit(self: *Scanner) void {
@@ -53,10 +47,13 @@ pub const Scanner = struct {
         switch (c) {
             '(' => try self.addToken(.LEFT_PAREN),
             ')' => try self.addToken(.RIGHT_PAREN),
+            '{' => try self.addToken(.LEFT_BRACE),
+            '}' => try self.addToken(.RIGHT_BRACE),
+            ' ', '\r' => {},
             0 => try self.addToken(.EOF),
             else => {
                 return ScanError.UnexpectedCharacter;
-            }
+            },
         }
     }
 

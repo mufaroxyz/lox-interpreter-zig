@@ -27,7 +27,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     var scanner = Scanner.init(file_contents, allocator);
-    defer scanner.tokens.deinit();
+    defer scanner.deinit();
     try scanner.scanTokens();
     for (scanner.tokens.items) |token| {
         try printToken(token);

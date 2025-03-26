@@ -1,13 +1,8 @@
 const std = @import("std");
 
-const Errors = error {
-    TokenNotFound
-};
+const Errors = error{TokenNotFound};
 
-pub const TokenType = enum {
-    LEFT_PAREN, RIGHT_PAREN,
-    EOF
-};
+pub const TokenType = enum { LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, EOF };
 
 pub const Token = struct {
     type: TokenType,
@@ -26,5 +21,5 @@ pub const Token = struct {
 };
 
 pub fn printToken(token: Token) !void {
-    try std.io.getStdOut().writer().print("{s} {s} {any}\n", .{@tagName(token.type), token.lexeme, token.literal});
+    try std.io.getStdOut().writer().print("{s} {s} {any}\n", .{ @tagName(token.type), token.lexeme, token.literal });
 }
