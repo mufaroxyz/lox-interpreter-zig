@@ -35,7 +35,7 @@ pub const Scanner = struct {
 
     pub fn scanTokens(self: *Scanner) !void {
         while (!self.isAtEnd()) {
-            self.start = self.current; // put at beginning of next lexeme
+            self.start = self.current; // put at beginning of next lexeme.
             try self.scanToken();
         }
 
