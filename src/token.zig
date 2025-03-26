@@ -2,7 +2,21 @@ const std = @import("std");
 
 const Errors = error{TokenNotFound};
 
-pub const TokenType = enum { LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, EOF };
+pub const TokenType = enum {
+    // stop zls wrap
+    LEFT_PAREN,
+    RIGHT_PAREN,
+    LEFT_BRACE,
+    RIGHT_BRACE,
+    COMMA,
+    DOT,
+    MINUS,
+    PLUS,
+    SEMICOLON,
+    SLASH,
+    STAR,
+    EOF,
+};
 
 pub const Token = struct {
     type: TokenType,
