@@ -15,9 +15,10 @@ pub const Scanner = struct {
     start: usize,
     current: usize,
     line: usize,
+    hadError: bool,
 
     pub fn init(source: []const u8, allocator: std.mem.Allocator) Scanner {
-        return Scanner{ .source = source, .start = 0, .current = 0, .line = 0, .tokens = ArrayList(Token).init(allocator) };
+        return Scanner{ .source = source, .start = 0, .current = 0, .line = 0, .tokens = ArrayList(Token).init(allocator), .hadError = false };
     }
 
     pub fn deinit(self: *Scanner) void {
@@ -36,7 +37,14 @@ pub const Scanner = struct {
     pub fn scanTokens(self: *Scanner) !void {
         while (!self.isAtEnd()) {
             self.start = self.current; // put at beginning of next lexeme.
-            try self.scanToken();
+            self.scanToken() catch |err| {
+                if (err == ScanError.UnexpectedCharacter) {
+                    self.hadError = true;
+                    var buf: [1024]u8 = undefined;
+                    const len = try std.fmt.bufPrint(&buf, "[line: {d}] Error: Unexpected character '{c}'\n", .{ self.line, self.source[self.current] });
+                    std.debug.print("{s}", .{len});
+                }
+            };
         }
 
         try self.tokens.append(Token.init(.EOF, "", null, self.line));
