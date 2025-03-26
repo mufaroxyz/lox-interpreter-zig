@@ -2,6 +2,10 @@ const std = @import("std");
 const Scanner = @import("scanner.zig").Scanner;
 const printToken = @import("token.zig").printToken;
 
+const Errors = error{
+    LexicalError,
+};
+
 pub fn main() !void {
     const args = try std.process.argsAlloc(std.heap.page_allocator);
     defer std.process.argsFree(std.heap.page_allocator, args);
@@ -28,7 +32,13 @@ pub fn main() !void {
 
     var scanner = Scanner.init(file_contents, allocator);
     defer scanner.deinit();
-    try scanner.scanTokens();
+
+    scanner.scanTokens() catch |err| {
+        if (err == Errors.LexicalError) {
+            std.os.exit(65);
+        }
+    };
+
     for (scanner.tokens.items) |token| {
         try printToken(token);
     }
