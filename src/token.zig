@@ -15,6 +15,8 @@ pub const TokenType = enum {
     SEMICOLON,
     SLASH,
     STAR,
+    EQUAL,
+    EQUAL_EQUAL,
     EOF,
 };
 

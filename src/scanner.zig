@@ -26,6 +26,14 @@ pub const Scanner = struct {
         self.tokens.deinit();
     }
 
+    fn match(self: *Scanner, expected: u8) bool {
+        if (self.isAtEnd()) return false;
+        if (self.source[self.current] != expected) return false;
+
+        self.current += 1;
+        return true;
+    }
+
     pub fn advance(self: *Scanner) u8 {
         self.current += 1;
         return self.source[self.current - 1]; // same as current++
@@ -84,6 +92,10 @@ pub const Scanner = struct {
             ';' => try self.addToken(.SEMICOLON),
             '/' => try self.addToken(.SLASH),
             '*' => try self.addToken(.STAR),
+            '=' => try self.addToken(
+                if (self.match('=')) .EQUAL_EQUAL else .EQUAL,
+            ),
+
             ' ', '\r' => {},
             '\n' => {
                 self.line += 1;
