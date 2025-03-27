@@ -9,7 +9,7 @@ pub const Value = union(enum) {
             .string => |s| return s,
             .number => |n| {
                 const buf = try allocator.alloc(u8, 32);
-                const len = try std.fmt.bufPrintZ(buf, "{d}", .{n});
+                const len = try std.fmt.bufPrintZ(buf, "{d:.1}", .{n});
                 return allocator.realloc(buf, len.len);
             },
         }
