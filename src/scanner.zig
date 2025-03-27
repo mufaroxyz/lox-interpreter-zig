@@ -60,7 +60,7 @@ pub const Scanner = struct {
                 if (err == ScanError.UnexpectedCharacter) {
                     self.hadError = true;
                     var buf: [1024]u8 = undefined;
-                    const len = try std.fmt.bufPrint(&buf, "[line: {d}] Error: Unexpected character: {c}\n", .{ self.line, self.peekBack() });
+                    const len = try std.fmt.bufPrint(&buf, "[line {d}] Error: Unexpected character: {c}\n", .{ self.line, self.peekBack() });
                     std.debug.print("{s}", .{len});
                 }
             };
