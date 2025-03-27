@@ -115,7 +115,7 @@ pub const Scanner = struct {
                 }
             },
 
-            ' ', '\r' => {},
+            ' ', '\r', '\t' => {},
             '\n' => {
                 self.line += 1;
             },
