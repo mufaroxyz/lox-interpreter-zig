@@ -1,14 +1,8 @@
 const Token = @import("token.zig").Token;
 const TokenType = @import("token.zig").TokenType;
-const Tokens = @import("token.zig").Tokens;
-const Errors = @import("token.zig").Errors;
-const ProgramErrors = @import("main.zig").Errors;
 const std = @import("std");
 const ArrayList = std.ArrayList;
-
-pub const ScanError = error{
-    UnexpectedCharacter,
-};
+const ScanError = @import("error.zig").ScanError;
 
 pub const Scanner = struct {
     source: []const u8,
@@ -70,6 +64,13 @@ pub const Scanner = struct {
                     var buf: [1024]u8 = undefined;
                     const len = try std.fmt.bufPrint(&buf, "[line {d}] Error: Unexpected character: {c}\n", .{ self.line, self.peekBack() });
                     std.debug.print("{s}", .{len});
+                } else if (err == ScanError.UnterminatedString) {
+                    self.hadError = true;
+                    var buf: [1024]u8 = undefined;
+                    const len = try std.fmt.bufPrint(&buf, "[line {d}] Error: Unterminated string.\n", .{self.line});
+                    std.debug.print("{s}", .{len});
+                } else {
+                    return err;
                 }
             };
         }
@@ -114,6 +115,7 @@ pub const Scanner = struct {
                     try self.addToken(.SLASH);
                 }
             },
+            '"' => try self.string(),
 
             ' ', '\r', '\t' => {},
             '\n' => {
@@ -134,5 +136,31 @@ pub const Scanner = struct {
             null,
             self.line,
         ));
+    }
+
+    fn addTokenWithLiteral(self: *Scanner, token_type: TokenType, literal: []const u8) !void {
+        const lexeme = self.source[self.start..self.current];
+        try self.tokens.append(Token.init(
+            token_type,
+            lexeme,
+            literal,
+            self.line,
+        ));
+    }
+
+    fn string(self: *Scanner) !void {
+        while (self.peek() != '"' and !self.isAtEnd()) {
+            if (self.peek() == '\n') self.line += 1;
+            _ = self.advance();
+        }
+
+        if (self.isAtEnd()) {
+            return ScanError.UnterminatedString;
+        }
+
+        _ = self.advance();
+
+        const value = self.source[self.start + 1 .. self.current - 1];
+        try self.addTokenWithLiteral(.STRING, value);
     }
 };

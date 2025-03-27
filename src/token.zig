@@ -1,7 +1,5 @@
 const std = @import("std");
 
-const Errors = error{TokenNotFound};
-
 pub const TokenType = enum {
     // stop zls wrap
     LEFT_PAREN,
@@ -23,6 +21,7 @@ pub const TokenType = enum {
     LESS_EQUAL,
     GREATER,
     GREATER_EQUAL,
+    STRING,
     EOF,
 };
 
@@ -43,5 +42,6 @@ pub const Token = struct {
 };
 
 pub fn printToken(token: Token) !void {
-    try std.io.getStdOut().writer().print("{s} {s} {any}\n", .{ @tagName(token.type), token.lexeme, token.literal });
+    const literal_display = if (token.literal) |lit| lit else "null";
+    try std.io.getStdOut().writer().print("{s} {s} {s}\n", .{ @tagName(token.type), token.lexeme, literal_display });
 }
