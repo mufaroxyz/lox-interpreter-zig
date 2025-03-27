@@ -90,7 +90,6 @@ pub const Scanner = struct {
             '-' => try self.addToken(.MINUS),
             '+' => try self.addToken(.PLUS),
             ';' => try self.addToken(.SEMICOLON),
-            '/' => try self.addToken(.SLASH),
             '*' => try self.addToken(.STAR),
             '=' => try self.addToken(
                 if (self.match('=')) .EQUAL_EQUAL else .EQUAL,
@@ -109,7 +108,7 @@ pub const Scanner = struct {
             '/' => {
                 if (self.match('/')) {
                     while (self.peek() != '\n' and !self.isAtEnd()) {
-                        self.advance();
+                        _ = self.advance();
                     }
                 } else {
                     try self.addToken(.SLASH);
