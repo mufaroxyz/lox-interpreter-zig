@@ -39,7 +39,7 @@ pub const Scanner = struct {
     }
 
     // used when needed to look at the character that was used after advancing the current position (off by one)
-    // to remember: when advance() is called, current is incremented by 1 but the character used is the one before the increment.
+    // to remember: when advance() is called, current is incremented by 1 but the character used is the one before the increment
     pub fn peekBack(self: *Scanner) u8 {
         if (self.current == 0) {
             return 0; // EOF
