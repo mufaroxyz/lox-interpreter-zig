@@ -106,6 +106,15 @@ pub const Scanner = struct {
             '>' => try self.addToken(
                 if (self.match('=')) .GREATER_EQUAL else .GREATER,
             ),
+            '/' => {
+                if (self.match('/')) {
+                    while (self.peek() != '\n' and !self.isAtEnd()) {
+                        self.advance();
+                    }
+                } else {
+                    try self.addToken(.SLASH);
+                }
+            },
 
             ' ', '\r' => {},
             '\n' => {
