@@ -17,6 +17,8 @@ pub const TokenType = enum {
     STAR,
     EQUAL,
     EQUAL_EQUAL,
+    BANG,
+    BANG_EQUAL,
     EOF,
 };
 

@@ -95,6 +95,11 @@ pub const Scanner = struct {
             '=' => try self.addToken(
                 if (self.match('=')) .EQUAL_EQUAL else .EQUAL,
             ),
+            '!' => {
+                try self.addToken(
+                    if (self.match('=')) .BANG_EQUAL else .BANG,
+                );
+            },
 
             ' ', '\r' => {},
             '\n' => {
