@@ -3,6 +3,7 @@ const TokenType = @import("token.zig").TokenType;
 const std = @import("std");
 const ArrayList = std.ArrayList;
 const ScanError = @import("error.zig").ScanError;
+const Value = @import("value.zig").Value;
 
 pub const Scanner = struct {
     source: []const u8,
@@ -47,6 +48,13 @@ pub const Scanner = struct {
             return 0; // EOF
         }
         return self.source[self.current - 1];
+    }
+
+    pub fn peekNext(self: *Scanner) u8 {
+        if (self.current + 1 >= self.source.len) {
+            return 0; // EOF
+        }
+        return self.source[self.current + 1];
     }
 
     pub fn isAtEnd(self: *Scanner) bool {
@@ -123,6 +131,11 @@ pub const Scanner = struct {
             },
             0 => try self.addToken(.EOF),
             else => {
+                if (isDigit(c)) {
+                    try self.number();
+                    return;
+                }
+
                 return ScanError.UnexpectedCharacter;
             },
         }
@@ -138,7 +151,7 @@ pub const Scanner = struct {
         ));
     }
 
-    fn addTokenWithLiteral(self: *Scanner, token_type: TokenType, literal: []const u8) !void {
+    fn addTokenWithLiteral(self: *Scanner, token_type: TokenType, literal: anytype) !void {
         const lexeme = self.source[self.start..self.current];
         try self.tokens.append(Token.init(
             token_type,
@@ -161,6 +174,30 @@ pub const Scanner = struct {
         _ = self.advance();
 
         const value = self.source[self.start + 1 .. self.current - 1];
-        try self.addTokenWithLiteral(.STRING, value);
+        const literalValue = Value.fromString(value);
+        try self.addTokenWithLiteral(.STRING, literalValue);
+    }
+
+    fn number(self: *Scanner) !void {
+        while (isDigit(self.peek())) {
+            _ = self.advance();
+        }
+
+        if (self.peek() == '.' and isDigit(self.peekNext())) {
+            _ = self.advance();
+
+            while (isDigit(self.peek())) {
+                _ = self.advance();
+            }
+        }
+
+        const value = self.source[self.start..self.current];
+        const floatPtr = try std.fmt.parseFloat(f64, value);
+        const literalValue = Value.fromNumber(floatPtr);
+        try self.addTokenWithLiteral(.NUMBER, literalValue);
     }
 };
+
+fn isDigit(char: u8) bool {
+    return char >= '0' and char <= '9';
+}

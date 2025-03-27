@@ -1,4 +1,5 @@
 const std = @import("std");
+const Value = @import("value.zig").Value;
 
 pub const TokenType = enum {
     // stop zls wrap
@@ -22,16 +23,17 @@ pub const TokenType = enum {
     GREATER,
     GREATER_EQUAL,
     STRING,
+    NUMBER,
     EOF,
 };
 
 pub const Token = struct {
     type: TokenType,
     lexeme: []const u8,
-    literal: ?[]const u8,
+    literal: ?Value,
     line: usize,
 
-    pub fn init(token_type: TokenType, lexeme: []const u8, literal: ?[]const u8, line: usize) Token {
+    pub fn init(token_type: TokenType, lexeme: []const u8, literal: ?Value, line: usize) Token {
         return Token{
             .type = token_type,
             .lexeme = lexeme,
@@ -41,7 +43,18 @@ pub const Token = struct {
     }
 };
 
-pub fn printToken(token: Token) !void {
-    const literal_display = if (token.literal) |lit| lit else "null";
-    try std.io.getStdOut().writer().print("{s} {s} {s}\n", .{ @tagName(token.type), token.lexeme, literal_display });
+pub fn printToken(token: Token, allocator: std.mem.Allocator) !void {
+    var literal_str: []const u8 = "null";
+    var needs_free = false;
+
+    if (token.literal) |literal| {
+        literal_str = try literal.toString(allocator);
+        if (literal == .number) needs_free = true;
+    }
+
+    try std.io.getStdOut().writer().print("{s} {s} {s}\n", .{ @tagName(token.type), token.lexeme, literal_str });
+
+    if (needs_free) {
+        allocator.free(literal_str);
+    }
 }

@@ -33,7 +33,7 @@ pub fn main() !void {
     const resolvedTokens = scanner.tokens.items;
 
     for (resolvedTokens) |token| {
-        try printToken(token);
+        try printToken(token, allocator);
     }
 
     if (scanner.hadError) {
