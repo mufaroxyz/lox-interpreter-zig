@@ -100,6 +100,12 @@ pub const Scanner = struct {
                     if (self.match('=')) .BANG_EQUAL else .BANG,
                 );
             },
+            '<' => try self.addToken(
+                if (self.match('=')) .LESS_EQUAL else .LESS,
+            ),
+            '>' => try self.addToken(
+                if (self.match('=')) .GREATER_EQUAL else .GREATER,
+            ),
 
             ' ', '\r' => {},
             '\n' => {
