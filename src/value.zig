@@ -9,12 +9,10 @@ pub const Value = union(enum) {
             .string => |s| return s,
             .number => |n| {
                 const buf = try allocator.alloc(u8, 32);
-                // const isInteger = @floor(n) == n;
-
                 const newMem = try std.fmt.bufPrint(buf, "{d}", .{n});
 
                 if (std.mem.indexOfScalar(u8, buf, '.') == null) {
-                    const _newMem = try std.fmt.bufPrint(buf, ".0", .{n});
+                    const _newMem = try std.fmt.bufPrint(buf, ".0", .{});
                     return allocator.realloc(buf, _newMem.len);
                 } else {
                     return allocator.realloc(buf, newMem.len);

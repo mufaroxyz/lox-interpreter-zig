@@ -35,26 +35,17 @@ pub const Scanner = struct {
     }
 
     pub fn peek(self: *Scanner) u8 {
-        if (self.isAtEnd()) {
-            return 0; // EOF
-        }
-        return self.source[self.current];
+        return if (self.isAtEnd()) 0 else self.source[self.current];
     }
 
     // used when needed to look at the character that was used after advancing the current position (off by one)
     // to remember: when advance() is called, current is incremented by 1 but the character used is the one before the increment
     pub fn peekBack(self: *Scanner) u8 {
-        if (self.current == 0) {
-            return 0; // EOF
-        }
-        return self.source[self.current - 1];
+        return if (self.current == 0) 0 else self.source[self.current - 1];
     }
 
     pub fn peekNext(self: *Scanner) u8 {
-        if (self.current + 1 >= self.source.len) {
-            return 0; // EOF
-        }
-        return self.source[self.current + 1];
+        return if (self.current + 1 >= self.source.len) 0 else self.source[self.current + 1];
     }
 
     pub fn isAtEnd(self: *Scanner) bool {
@@ -130,6 +121,7 @@ pub const Scanner = struct {
                 self.line += 1;
             },
             '0'...'9' => try self.number(),
+            'a'...'z', 'A'...'Z', '_' => try self.identifier(),
             0 => try self.addToken(.EOF),
             else => {
                 return ScanError.UnexpectedCharacter;
@@ -191,5 +183,13 @@ pub const Scanner = struct {
         const floatPtr = try std.fmt.parseFloat(f64, value);
         const literalValue = Value.fromNumber(floatPtr);
         try self.addTokenWithLiteral(.NUMBER, literalValue);
+    }
+
+    fn identifier(self: *Scanner) !void {
+        while (std.ascii.isAlphanumeric(self.peek())) {
+            _ = self.advance();
+        }
+
+        try self.addToken(.IDENTIFIER);
     }
 };

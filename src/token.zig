@@ -24,6 +24,7 @@ pub const TokenType = enum {
     GREATER_EQUAL,
     STRING,
     NUMBER,
+    IDENTIFIER,
     EOF,
 };
 
