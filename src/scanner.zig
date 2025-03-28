@@ -129,13 +129,9 @@ pub const Scanner = struct {
             '\n' => {
                 self.line += 1;
             },
+            '0'...'9' => try self.number(),
             0 => try self.addToken(.EOF),
             else => {
-                if (isDigit(c)) {
-                    try self.number();
-                    return;
-                }
-
                 return ScanError.UnexpectedCharacter;
             },
         }
@@ -179,14 +175,14 @@ pub const Scanner = struct {
     }
 
     fn number(self: *Scanner) !void {
-        while (isDigit(self.peek())) {
+        while (std.ascii.isDigit(self.peek())) {
             _ = self.advance();
         }
 
-        if (self.peek() == '.' and isDigit(self.peekNext())) {
+        if (self.peek() == '.' and std.ascii.isDigit(self.peekNext())) {
             _ = self.advance();
 
-            while (isDigit(self.peek())) {
+            while (std.ascii.isDigit(self.peek())) {
                 _ = self.advance();
             }
         }
@@ -197,7 +193,3 @@ pub const Scanner = struct {
         try self.addTokenWithLiteral(.NUMBER, literalValue);
     }
 };
-
-fn isDigit(char: u8) bool {
-    return char >= '0' and char <= '9';
-}

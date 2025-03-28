@@ -9,13 +9,14 @@ pub const Value = union(enum) {
             .string => |s| return s,
             .number => |n| {
                 const buf = try allocator.alloc(u8, 32);
-                const isInteger = @floor(n) == n;
+                // const isInteger = @floor(n) == n;
 
-                if (isInteger) {
-                    const newMem = try std.fmt.bufPrintZ(buf, "{d}.0", .{n});
-                    return allocator.realloc(buf, newMem.len);
+                const newMem = try std.fmt.bufPrint(buf, "{d}", .{n});
+
+                if (std.mem.indexOfScalar(u8, buf, '.') == null) {
+                    const _newMem = try std.fmt.bufPrint(buf, ".0", .{n});
+                    return allocator.realloc(buf, _newMem.len);
                 } else {
-                    const newMem = try std.fmt.bufPrintZ(buf, "{d}", .{n});
                     return allocator.realloc(buf, newMem.len);
                 }
             },
