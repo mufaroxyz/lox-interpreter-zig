@@ -52,7 +52,7 @@ pub fn printToken(token: Token, allocator: std.mem.Allocator) !void {
         if (literal == .number) needs_free = true;
     }
 
-    std.debug.print("{s} {s} {s}\n", .{ @tagName(token.type), token.lexeme, literal_str });
+    try std.io.getStdOut().writer().print("{s} {s} {s}\n", .{ @tagName(token.type), token.lexeme, literal_str });
 
     if (needs_free) {
         allocator.free(literal_str);

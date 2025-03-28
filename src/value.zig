@@ -9,8 +9,15 @@ pub const Value = union(enum) {
             .string => |s| return s,
             .number => |n| {
                 const buf = try allocator.alloc(u8, 32);
-                const len = try std.fmt.bufPrintZ(buf, "{d:.1}", .{n});
-                return allocator.realloc(buf, len.len);
+                const isInteger = @floor(n) == n;
+
+                if (isInteger) {
+                    const newMem = try std.fmt.bufPrintZ(buf, "{d}.0", .{n});
+                    return allocator.realloc(buf, newMem.len);
+                } else {
+                    const newMem = try std.fmt.bufPrintZ(buf, "{d}", .{n});
+                    return allocator.realloc(buf, newMem.len);
+                }
             },
         }
     }
