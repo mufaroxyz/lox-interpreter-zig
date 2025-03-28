@@ -194,7 +194,6 @@ pub const Scanner = struct {
         const value = self.source[self.start..self.current];
         const floatPtr = try std.fmt.parseFloat(f64, value);
         const literalValue = Value.fromNumber(floatPtr);
-        std.debug.print("number: {s}\n", .{floatPtr});
         try self.addTokenWithLiteral(.NUMBER, literalValue);
     }
 };
