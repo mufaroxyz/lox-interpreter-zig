@@ -187,7 +187,7 @@ pub const Scanner = struct {
     }
 
     fn identifier(self: *Scanner) !void {
-        while (std.ascii.isAlphanumeric(self.peek())) {
+        while (std.ascii.isAlphanumeric(self.peek()) or self.peek() == '_') {
             _ = self.advance();
         }
 
