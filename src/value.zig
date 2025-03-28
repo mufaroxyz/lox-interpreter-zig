@@ -12,7 +12,7 @@ pub const Value = union(enum) {
                 const newMem = try std.fmt.bufPrint(buf, "{d}", .{n});
 
                 if (std.mem.indexOfScalar(u8, buf, '.') == null) {
-                    const _newMem = try std.fmt.bufPrint(buf, ".0", .{});
+                    const _newMem = try std.fmt.bufPrint(buf, "{d}.0", .{n});
                     return allocator.realloc(buf, _newMem.len);
                 } else {
                     return allocator.realloc(buf, newMem.len);
