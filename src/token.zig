@@ -25,8 +25,46 @@ pub const TokenType = enum {
     STRING,
     NUMBER,
     IDENTIFIER,
+
+    // keywords
+    AND,
+    CLASS,
+    IF,
+    ELSE,
+    FALSE,
+    TRUE,
+    FOR,
+    FUN,
+    NIL,
+    OR,
+    PRINT,
+    RETURN,
+    SUPER,
+    THIS,
+    VAR,
+    WHILE,
+
     EOF,
 };
+
+pub const keywords = std.StaticStringMap(TokenType).initComptime(.{
+    .{ "and", .AND },
+    .{ "class", .CLASS },
+    .{ "if", .IF },
+    .{ "else", .ELSE },
+    .{ "false", .FALSE },
+    .{ "true", .TRUE },
+    .{ "for", .FOR },
+    .{ "fun", .FUN },
+    .{ "nil", .NIL },
+    .{ "or", .OR },
+    .{ "print", .PRINT },
+    .{ "return", .RETURN },
+    .{ "super", .SUPER },
+    .{ "this", .THIS },
+    .{ "var", .VAR },
+    .{ "while", .WHILE },
+});
 
 pub const Token = struct {
     type: TokenType,

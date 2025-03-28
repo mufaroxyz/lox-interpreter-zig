@@ -4,6 +4,7 @@ const std = @import("std");
 const ArrayList = std.ArrayList;
 const ScanError = @import("error.zig").ScanError;
 const Value = @import("value.zig").Value;
+const keywords = @import("token.zig").keywords;
 
 pub const Scanner = struct {
     source: []const u8,
@@ -190,6 +191,9 @@ pub const Scanner = struct {
             _ = self.advance();
         }
 
-        try self.addToken(.IDENTIFIER);
+        const text = self.source[self.start..self.current];
+        const tokenType = keywords.get(text) orelse .IDENTIFIER;
+
+        try self.addToken(tokenType);
     }
 };
