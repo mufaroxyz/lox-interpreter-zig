@@ -7,6 +7,7 @@ pub const Expr = union(enum) {
 pub const LiteralExpr = union(enum) {
     boolean: bool,
     nil: void,
+    literal: []const u8,
 
     pub fn format(
         self: @This(),
@@ -17,6 +18,7 @@ pub const LiteralExpr = union(enum) {
         switch (self) {
             .boolean => |b| try std.fmt.format(writer, "{}", .{b}),
             .nil => |_| try std.fmt.format(writer, "nil", .{}),
+            .literal => |l| try std.fmt.format(writer, "{s}", .{l}),
         }
     }
 };
