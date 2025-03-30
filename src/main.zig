@@ -1,5 +1,7 @@
 const std = @import("std");
 const Scanner = @import("scanner.zig").Scanner;
+const Parser = @import("parse.zig").Parser;
+const AstPrinter = @import("ast.zig").AstPrinter;
 const printToken = @import("token.zig").printToken;
 
 pub fn main() !void {
@@ -14,7 +16,7 @@ pub fn main() !void {
     const command = args[1];
     const filename = args[2];
 
-    if (!std.mem.eql(u8, command, "tokenize")) {
+    if (!std.mem.eql(u8, command, "tokenize") and !std.mem.eql(u8, command, "parse")) {
         std.debug.print("Unknown command: {s}\n", .{command});
         std.process.exit(1);
     }
@@ -30,13 +32,27 @@ pub fn main() !void {
     defer scanner.deinit();
 
     try scanner.scanTokens();
-    const resolvedTokens = scanner.tokens.items;
 
-    for (resolvedTokens) |token| {
-        try printToken(token, allocator);
+    const resolvedTokens = scanner.tokens.items;
+    const writer = std.io.getStdOut().writer();
+
+    if (std.mem.eql(u8, command, "tokenize")) {
+        for (resolvedTokens) |token| {
+            try printToken(token, allocator);
+        }
+
+        if (scanner.hadError) {
+            std.process.exit(65);
+        }
     }
 
-    if (scanner.hadError) {
-        std.process.exit(65);
+    if (std.mem.eql(u8, command, "parse")) {
+        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+        defer arena.deinit();
+
+        var parser = Parser.init(resolvedTokens, arena.allocator());
+        const expr = try parser.parse();
+
+        try AstPrinter.print(writer, expr.?);
     }
 }
