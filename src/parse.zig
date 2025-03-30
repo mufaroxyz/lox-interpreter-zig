@@ -21,7 +21,7 @@ pub const Parser = struct {
         if (self.match(.FALSE)) return try self.createExpression(.{ .literal = .{ .boolean = false } });
         if (self.match(.NIL)) return try self.createExpression(.{ .literal = .{ .nil = {} } });
 
-        if (self.match(.NUMBER) || self.match(.STRING)) {
+        if (self.match(.NUMBER) or self.match(.STRING)) {
             const value = self.previous().literal.?.toString(self.allocator) catch |err| {
                 return err;
             };
