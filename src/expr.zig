@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const Expr = union(enum) {
     literal: LiteralExpr,
+    grouping: *Expr,
 };
 
 pub const LiteralExpr = union(enum) {

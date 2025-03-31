@@ -28,7 +28,25 @@ pub const Parser = struct {
             return try self.createExpression(.{ .literal = .{ .literal = value } });
         }
 
+        if (self.match(.LEFT_PAREN)) {
+            const expr = try self.primary();
+            _ = try self.consume(.RIGHT_PAREN, "Expect ')' after expression.");
+            return try self.createExpression(.{ .grouping = expr });
+        }
+
         unreachable;
+    }
+
+    fn printError(_: *Parser, token: Token, message: []const u8) !Token {
+        const writer = std.io.getStdOut().writer();
+        try std.fmt.format(writer, "[line {d}] Error: {s}\n", .{ token.line, message });
+        return token;
+    }
+
+    fn consume(self: *Parser, @"type": TokenType, errorMessage: []const u8) !Token {
+        if (self.check(@"type")) return try self.advance();
+
+        return self.printError(self.peek(), errorMessage);
     }
 
     fn createExpression(self: *Parser, value: Expr) !*Expr {
