@@ -5,6 +5,22 @@ pub const Expr = union(enum) {
     literal: LiteralExpr,
     grouping: *Expr,
     unary: UnaryExpr,
+    binary: BinaryExpr,
+};
+
+pub const BinaryExpr = struct {
+    left: *Expr,
+    operator: Token,
+    right: *Expr,
+
+    pub fn format(
+        self: @This(),
+        comptime _: []const u8,
+        _: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        try std.fmt.format(writer, "{s}", .{self.operator.lexeme});
+    }
 };
 
 pub const UnaryExpr = struct {

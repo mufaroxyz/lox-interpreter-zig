@@ -19,7 +19,20 @@ pub const Parser = struct {
     }
 
     fn expression(self: *Parser) ParserError!*Expr {
-        return try self.unary();
+        return try self.factor();
+    }
+
+    fn factor(self: *Parser) ParserError!*Expr {
+        var expr = try self.unary();
+
+        while (try self.match(.SLASH) or try self.match(.STAR)) {
+            const operatorToken = self.previous();
+            const rightExpr = try self.unary();
+            std.debug.print("L: {any} , R: {any} \n", .{ expr, rightExpr });
+            expr = try self.createExpression(.{ .binary = .{ .left = expr, .operator = operatorToken, .right = rightExpr } });
+        }
+
+        return expr;
     }
 
     fn unary(self: *Parser) ParserError!*Expr {

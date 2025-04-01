@@ -13,6 +13,10 @@ pub const AstPrinter = struct {
                 var expressions = [_]*Expr{unary.right};
                 try parenthesize(writer, unary.operator.lexeme, &expressions);
             },
+            .binary => |binary| {
+                var expressions = [_]*Expr{ binary.left, binary.right };
+                try parenthesize(writer, binary.operator.lexeme, &expressions);
+            },
         };
     }
 
