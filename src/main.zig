@@ -53,6 +53,6 @@ pub fn main() !void {
         var parser = Parser.init(resolvedTokens, arena.allocator());
         const expr = try parser.parse();
 
-        try AstPrinter.print(writer, expr.?);
+        try AstPrinter.print(writer, expr);
     }
 }
