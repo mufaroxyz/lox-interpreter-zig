@@ -22,6 +22,8 @@ pub const Parser = struct {
         return try self.factor();
     }
 
+    fn term(self: *Parser) ParserError!*Expr {}
+
     fn factor(self: *Parser) ParserError!*Expr {
         var expr = try self.unary();
 
