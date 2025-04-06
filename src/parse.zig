@@ -94,25 +94,24 @@ pub const Parser = struct {
 
         if (try self.match(.LEFT_PAREN)) {
             const expr = try self.expression();
-            _ = try self.consume(.RIGHT_PAREN, "Expect ')' after expression.");
+            _ = try self.consume(.RIGHT_PAREN, "Expect ')' after expression.\n");
             return try self.createExpression(.{ .grouping = expr });
         }
 
-        return ParserError.UnexpectedToken;
-    }
+        const writer = std.io.getStdErr().writer();
+        const reportToken = self.peek();
+        std.fmt.format(writer, "[line {d}] Error at '{s}': Expect expression\n", .{ reportToken.line, reportToken.lexeme }) catch {};
 
-    fn printError(_: *Parser, token: Token, message: []const u8) !Token {
-        const writer = std.io.getStdOut().writer();
-        std.fmt.format(writer, "[line {d}] Error: {s}\n", .{ token.line, message }) catch {
-            return ParserError.UnexpectedToken;
-        };
-        return token;
+        return ParserError.UnexpectedToken;
     }
 
     fn consume(self: *Parser, @"type": TokenType, errorMessage: []const u8) ParserError!Token {
         if (self.check(@"type")) return try self.advance();
 
-        return self.printError(self.peek(), errorMessage);
+        const writer = std.io.getStdErr().writer();
+        std.fmt.format(writer, "[line {d}] Error: {s}", .{ self.peek().line, errorMessage }) catch {};
+
+        return ParserError.UnexpectedToken;
     }
 
     fn createExpression(self: *Parser, value: Expr) ParserError!*Expr {

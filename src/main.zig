@@ -51,7 +51,10 @@ pub fn main() !void {
         defer arena.deinit();
 
         var parser = Parser.init(resolvedTokens, arena.allocator());
-        const expr = try parser.parse();
+        const expr = parser.parse() catch {
+            std.process.exit(65);
+            return;
+        };
 
         try AstPrinter.print(writer, expr);
     }
