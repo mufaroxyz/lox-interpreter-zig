@@ -19,7 +19,19 @@ pub const Parser = struct {
     }
 
     fn expression(self: *Parser) ParserError!*Expr {
-        return try self.comparison();
+        return try self.eql();
+    }
+
+    fn eql(self: *Parser) ParserError!*Expr {
+        var expr = try self.comparison();
+
+        while (try self.match(.BANG_EQUAL) or try self.match(.EQUAL_EQUAL)) {
+            const operatorToken = self.previous();
+            const rightExpr = try self.comparison();
+            expr = try self.createExpression(.{ .binary = .{ .left = expr, .operator = operatorToken, .right = rightExpr } });
+        }
+
+        return expr;
     }
 
     fn comparison(self: *Parser) ParserError!*Expr {
