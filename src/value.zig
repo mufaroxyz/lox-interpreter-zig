@@ -85,6 +85,11 @@ pub const Value = union(enum) {
             },
             else => error.InvalidOperation,
         };
+
+        // todo: update to this formatting
+        // if (self == .number and other == .number) {
+        //     return Value.fromNumber(self.number + other.number);
+        // }
     }
 
     pub fn subtract(self: Value, other: Value) !Value {
