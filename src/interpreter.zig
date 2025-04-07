@@ -16,7 +16,22 @@ pub const Interpreter = struct {
         return switch (expr.*) {
             .literal => |val| Value.fromLiteralExpr(val),
             .grouping => |group_expr| self.evaluate(group_expr),
+            .unary => |unary_expr| self.evaluateUnary(unary_expr),
             else => @panic("Unsupported expression type"),
+        };
+    }
+
+    fn evaluateUnary(self: *Interpreter, unary: Expressions.UnaryExpr) Value {
+        const right = self.evaluate(unary.right);
+        return switch (unary.operator.type) {
+            .MINUS => Value.fromNumber(-right.number),
+            .BANG => Value.fromBoolean(switch (right) {
+                .number => right.number == 0,
+                .string => right.string.len == 0,
+                .boolean => !right.boolean,
+                .nil => true,
+            }),
+            else => @panic("Unsupported unary operator"),
         };
     }
 
