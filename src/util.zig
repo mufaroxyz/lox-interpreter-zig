@@ -15,3 +15,8 @@ pub fn parseTokens(tokens: []Token) *Expr {
 
     return expr;
 }
+
+pub fn isFloat(comptime v: anytype) bool {
+    const float: f64 = 0.0;
+    return @TypeOf(v, float) == f64;
+}

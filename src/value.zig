@@ -67,4 +67,56 @@ pub const Value = union(enum) {
             .number => |n| Value{ .number = n },
         };
     }
+
+    pub fn add(self: Value, other: Value, allocator: std.mem.Allocator) !Value {
+        return switch (self) {
+            .number => |l_num| switch (other) {
+                .number => |r_num| Value.fromNumber(l_num + r_num),
+                else => error.TypeMismatch,
+            },
+            .string => |l_str| switch (other) {
+                .string => |r_str| {
+                    var buffer = std.ArrayList(u8).init(allocator);
+                    try buffer.appendSlice(l_str);
+                    try buffer.appendSlice(r_str);
+                    return Value.fromString(try buffer.toOwnedSlice());
+                },
+                else => error.TypeMismatch,
+            },
+            else => error.InvalidOperation,
+        };
+    }
+
+    pub fn subtract(self: Value, other: Value) !Value {
+        return switch (self) {
+            .number => |l_num| switch (other) {
+                .number => |r_num| Value.fromNumber(l_num - r_num),
+                else => error.TypeMismatch,
+            },
+            else => error.InvalidOperation,
+        };
+    }
+
+    pub fn multiply(self: Value, other: Value) !Value {
+        return switch (self) {
+            .number => |l_num| switch (other) {
+                .number => |r_num| Value.fromNumber(l_num * r_num),
+                else => error.TypeMismatch,
+            },
+            else => error.InvalidOperation,
+        };
+    }
+
+    pub fn divide(self: Value, other: Value) !Value {
+        return switch (self) {
+            .number => |l_num| switch (other) {
+                .number => |r_num| {
+                    if (r_num == 0) return error.DivisionByZero;
+                    return Value.fromNumber(l_num / r_num);
+                },
+                else => error.TypeMismatch,
+            },
+            else => error.InvalidOperation,
+        };
+    }
 };
