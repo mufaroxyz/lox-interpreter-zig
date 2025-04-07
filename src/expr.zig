@@ -40,7 +40,8 @@ pub const UnaryExpr = struct {
 pub const LiteralExpr = union(enum) {
     boolean: bool,
     nil: void,
-    literal: []const u8,
+    string: []const u8,
+    number: f64,
 
     pub fn format(
         self: @This(),
@@ -51,7 +52,14 @@ pub const LiteralExpr = union(enum) {
         switch (self) {
             .boolean => |b| try std.fmt.format(writer, "{}", .{b}),
             .nil => |_| try std.fmt.format(writer, "nil", .{}),
-            .literal => |l| try std.fmt.format(writer, "{s}", .{l}),
+            .string => |s| try std.fmt.format(writer, "{s}", .{s}),
+            .number => |n| {
+                if (@floor(n) == n) { // if has dec part
+                    try std.fmt.format(writer, "{d}.0", .{n});
+                } else {
+                    try std.fmt.format(writer, "{d}", .{n});
+                }
+            },
         }
     }
 };

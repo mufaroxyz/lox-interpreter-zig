@@ -19,4 +19,21 @@ pub const Interpreter = struct {
             else => @panic("Unsupported expression type"),
         };
     }
+
+    fn evaluateLiteral(_: *Interpreter, literal: Expressions.LiteralExpr) Value {
+        return switch (literal) {
+            .boolean => |b| Value{ .boolean = b },
+            .nil => Value{ .nil = {} },
+            .literal => |l| {
+                // Check if the string is a numeric literal
+                // If it's a valid number, convert it to a numeric Value
+                if (std.fmt.parseFloat(f64, l)) |num| {
+                    return Value{ .number = num };
+                } else |_| {
+                    // If not a number, treat as regular string
+                    return Value{ .string = l };
+                }
+            },
+        };
+    }
 };

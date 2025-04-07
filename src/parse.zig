@@ -85,11 +85,24 @@ pub const Parser = struct {
         if (try self.match(.FALSE)) return try self.createExpression(.{ .literal = .{ .boolean = false } });
         if (try self.match(.NIL)) return try self.createExpression(.{ .literal = .{ .nil = {} } });
 
-        if (try self.match(.NUMBER) or try self.match(.STRING)) {
-            const value = self.previous().literal.?.toString(self.allocator) catch {
-                return ParserError.LiteralToStringParse;
-            };
-            return try self.createExpression(.{ .literal = .{ .literal = value } });
+        if (try self.match(.NUMBER)) {
+            const token = self.previous();
+            if (token.literal) |literal| {
+                if (literal == .number) {
+                    return try self.createExpression(.{ .literal = .{ .number = literal.number } });
+                }
+            }
+            return ParserError.LiteralToStringParse;
+        }
+
+        if (try self.match(.STRING)) {
+            const token = self.previous();
+            if (token.literal) |literal| {
+                if (literal == .string) {
+                    return try self.createExpression(.{ .literal = .{ .string = literal.string } });
+                }
+            }
+            return ParserError.LiteralToStringParse;
         }
 
         if (try self.match(.LEFT_PAREN)) {

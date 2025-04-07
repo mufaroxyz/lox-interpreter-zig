@@ -10,6 +10,7 @@ pub const Value = union(enum) {
         switch (self) {
             .string => |s| return s,
             .number => |n| {
+                std.debug.print("Value::toString: number: {}\n", .{n});
                 const buf = try allocator.alloc(u8, 32);
                 const newMem = try std.fmt.bufPrint(buf, "{d}", .{n});
 
@@ -62,7 +63,8 @@ pub const Value = union(enum) {
         return switch (literal) {
             .boolean => |b| Value{ .boolean = b },
             .nil => Value{ .nil = {} },
-            .literal => |l| Value{ .string = l },
+            .string => |s| Value{ .string = s },
+            .number => |n| Value{ .number = n },
         };
     }
 };
