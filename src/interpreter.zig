@@ -46,6 +46,18 @@ pub const Interpreter = struct {
                 error.InvalidOperation => @panic("Cannot divide a non-number value"),
                 error.DivisionByZero => @panic("Division by zero"),
             },
+            .GREATER => left.greaterThan(right, false) catch |err| switch (err) {
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare a non-number"),
+            },
+            .GREATER_EQUAL => left.greaterThan(right, true) catch |err| switch (err) {
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare a non-number"),
+            },
+            .LESS => left.lessThan(right, false) catch |err| switch (err) {
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare a non-number"),
+            },
+            .LESS_EQUAL => left.lessThan(right, true) catch |err| switch (err) {
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare to a non-number"),
+            },
             else => unreachable,
         };
     }
