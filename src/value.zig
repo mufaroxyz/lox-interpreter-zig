@@ -143,4 +143,22 @@ pub const Value = union(enum) {
             else => error.InvalidOperation,
         };
     }
+
+    pub fn eql(self: Value, other: Value, negation: ?bool) !Value {
+        return switch (self) {
+            .string => |l_str| switch (other) {
+                .string => |r_str| {
+                    if (negation orelse false) return Value.fromBoolean(!std.mem.eql(u8, l_str, r_str)) else return Value.fromBoolean(std.mem.eql(u8, l_str, r_str));
+                },
+                .number => Value.fromBoolean(if (negation orelse false) true else false),
+                else => error.TypeMismatch,
+            },
+            .number => |l_num| switch (other) {
+                .number => |r_num| return Value.fromBoolean(if (negation orelse false) l_num != r_num else l_num == r_num),
+                .string => Value.fromBoolean(if (negation orelse false) true else false),
+                else => error.TypeMismatch,
+            },
+            else => error.InvalidOperation,
+        };
+    }
 };

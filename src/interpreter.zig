@@ -56,7 +56,13 @@ pub const Interpreter = struct {
                 error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare a non-number"),
             },
             .LESS_EQUAL => left.lessThan(right, true) catch |err| switch (err) {
-                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare to a non-number"),
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare a non-number"),
+            },
+            .EQUAL_EQUAL => left.eql(right, false) catch |err| switch (err) {
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare to a non-string and non-number"),
+            },
+            .BANG_EQUAL => left.eql(right, true) catch |err| switch (err) {
+                error.TypeMismatch, error.InvalidOperation => @panic("Cannot compare to a non-string and non-number"),
             },
             else => unreachable,
         };
