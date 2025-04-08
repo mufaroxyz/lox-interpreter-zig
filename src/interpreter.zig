@@ -54,34 +54,34 @@ pub const Interpreter = struct {
 
         return switch (binary.operator.type) {
             .PLUS => left.add(right, std.heap.page_allocator) catch |err| switch (err) {
-                error.TypeMismatch => return self.reportError("Cannot add values of different types", .{}),
-                error.InvalidOperation => return self.reportError("Cannot add values of these types", .{}),
+                // error.TypeMismatch => return self.reportError("Cannot add values of different types", .{}),
+                error.InvalidOperation, error.TypeMismatch => return self.reportError("Operands must be numbers.", .{}),
                 else => return self.reportError("Error during addition operation", .{}),
             },
             .MINUS => left.subtract(right) catch |err| switch (err) {
-                error.TypeMismatch => return self.reportError("Cannot subtract a non-number from a value", .{}),
-                error.InvalidOperation => return self.reportError("Cannot subtract from a non-number value", .{}),
+                // error.TypeMismatch => return self.reportError("Cannot subtract a non-number from a value", .{}),
+                error.InvalidOperation, error.TypeMismatch => return self.reportError("Operands must be numbers", .{}),
             },
             .STAR => left.multiply(right) catch |err| switch (err) {
-                error.TypeMismatch => return self.reportError("Cannot multiply a non-number with a value", .{}),
-                error.InvalidOperation => return self.reportError("Cannot multiply a non-number value", .{}),
+                // error.TypeMismatch => return self.reportError("Cannot multiply a non-number with a value", .{}),
+                error.InvalidOperation, error.TypeMismatch => return self.reportError("Operands must be numbers.", .{}),
             },
             .SLASH => left.divide(right) catch |err| switch (err) {
-                error.TypeMismatch => return self.reportError("Cannot divide a non-number by a value", .{}),
-                error.InvalidOperation => return self.reportError("Cannot divide a non-number value", .{}),
+                // error.TypeMismatch => return self.reportError("Cannot divide a non-number by a value", .{}),
+                error.InvalidOperation, error.TypeMismatch => return self.reportError("Operands must be numbers.", .{}),
                 error.DivisionByZero => return self.reportError("Division by zero", .{}),
             },
             .GREATER => left.greaterThan(right, false) catch |err| switch (err) {
-                error.TypeMismatch, error.InvalidOperation => return self.reportError("Cannot compare non-numbers with > operator", .{}),
+                error.TypeMismatch, error.InvalidOperation => return self.reportError("Operands must be numbers.", .{}),
             },
             .GREATER_EQUAL => left.greaterThan(right, true) catch |err| switch (err) {
-                error.TypeMismatch, error.InvalidOperation => return self.reportError("Cannot compare non-numbers with >= operator", .{}),
+                error.TypeMismatch, error.InvalidOperation => return self.reportError("Operands must be numbers.", .{}),
             },
             .LESS => left.lessThan(right, false) catch |err| switch (err) {
-                error.TypeMismatch, error.InvalidOperation => return self.reportError("Cannot compare non-numbers with < operator", .{}),
+                error.TypeMismatch, error.InvalidOperation => return self.reportError("Operands must be numbers.", .{}),
             },
             .LESS_EQUAL => left.lessThan(right, true) catch |err| switch (err) {
-                error.TypeMismatch, error.InvalidOperation => return self.reportError("Cannot compare non-numbers with <= operator", .{}),
+                error.TypeMismatch, error.InvalidOperation => return self.reportError("Operands must be numbers.", .{}),
             },
             .EQUAL_EQUAL => left.eql(right, false) catch |err| switch (err) {
                 error.TypeMismatch, error.InvalidOperation => return self.reportError("Cannot compare these types with == operator", .{}),
