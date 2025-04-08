@@ -57,5 +57,10 @@ pub fn main() !void {
         const parsedTokens = Util.parseTokens(resolvedTokens);
         var interpreter = Interpreter.init();
         try interpreter.interpret(parsedTokens, writer);
+
+        // Check if any runtime errors occurred during interpretation
+        if (interpreter.hadError()) {
+            std.process.exit(70);
+        }
     }
 }
