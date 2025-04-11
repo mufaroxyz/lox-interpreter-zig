@@ -1,4 +1,5 @@
 const Expressions = @import("expr.zig");
+const Statements = @import("stmt.zig");
 const std = @import("std");
 const Value = @import("value.zig").Value;
 const Util = @import("util.zig");
@@ -19,14 +20,13 @@ pub const Interpreter = struct {
         };
     }
 
-    pub fn interpret(self: *Interpreter, expr: *Expressions.Expr, writer: anytype) !void {
+    pub fn interpret(self: *Interpreter, statements: std.ArrayList(Statements.Stmt)) !void {
         self.had_error = false;
-        const value = self.evaluate(expr);
 
-        if (self.had_error) return;
-
-        try value.format(writer);
-        try writer.writeByte('\n');
+        for (statements.items) |stmt| {
+            try self.execute(stmt);
+            if (self.had_error) return;
+        }
     }
 
     pub fn hadError(self: *const Interpreter) bool {
@@ -37,6 +37,20 @@ pub const Interpreter = struct {
         self.had_error = true;
         Report.errln(fmt, args);
         return Value._nil();
+    }
+
+    fn execute(self: *Interpreter, stmt: Statements.Stmt) !void {
+        switch (stmt) {
+            .expression => |expr_stmt| {
+                _ = self.evaluate(expr_stmt.expression);
+            },
+            .print => |print_stmt| {
+                const value = self.evaluate(print_stmt.expression);
+                const writer = std.io.getStdOut().writer();
+                try value.format("", .{}, writer);
+                try writer.writeByte('\n');
+            },
+        }
     }
 
     pub fn evaluate(self: *Interpreter, expr: *Expressions.Expr) Value {

@@ -1,7 +1,10 @@
 const Token = @import("token.zig").Token;
 const TokenType = @import("token.zig").TokenType;
 const Expr = @import("expr.zig").Expr;
+const Stmt = @import("stmt.zig").Stmt;
 const std = @import("std");
+
+const DEBUG_LOGS = false;
 
 pub const ParserError = error{ UnexpectedToken, OutOfMemory, LiteralToStringParse };
 
@@ -9,13 +12,87 @@ pub const Parser = struct {
     tokens: []const Token,
     allocator: std.mem.Allocator,
     current: usize = 0,
+    allocated_expressions: std.ArrayList(*Expr),
 
     pub fn init(tokens: []const Token, allocator: std.mem.Allocator) Parser {
-        return Parser{ .tokens = tokens, .allocator = allocator };
+        return Parser{ .tokens = tokens, .allocator = allocator, .current = 0, .allocated_expressions = std.ArrayList(*Expr).init(allocator) };
     }
 
-    pub fn parse(self: *Parser) ParserError!*Expr {
-        return try self.expression();
+    pub fn deinit(self: *Parser) void {
+        var freed = std.AutoHashMap(*Expr, void).init(self.allocator); // tracking set to avoid double free
+        defer freed.deinit();
+
+        for (self.allocated_expressions.items) |expr| {
+            self.freeExpression(expr, &freed);
+        }
+        self.allocated_expressions.deinit();
+    }
+
+    fn freeExpression(self: *Parser, expr: *Expr, freed: *std.AutoHashMap(*Expr, void)) void {
+        if (freed.contains(expr)) {
+            return;
+        }
+
+        freed.put(expr, {}) catch {
+            if (DEBUG_LOGS) std.debug.print("Failed to track freed expression\n", .{});
+        };
+
+        switch (expr.*) {
+            .binary => |binary| {
+                self.freeExpression(binary.left, freed);
+                self.freeExpression(binary.right, freed);
+            },
+            .unary => |unaryexpr| {
+                self.freeExpression(unaryexpr.right, freed);
+            },
+            .grouping => |grouping| {
+                // free contained
+                self.freeExpression(grouping, freed);
+            },
+            .literal => {},
+        }
+        // free itself
+        self.allocator.destroy(expr);
+    }
+
+    pub fn parse(self: *Parser) ParserError!std.ArrayList(Stmt) {
+        var statements = std.ArrayList(Stmt).init(self.allocator);
+        errdefer {
+            statements.deinit();
+        }
+
+        while (!self.isAtEnd()) {
+            if (DEBUG_LOGS) {
+                std.debug.print("Parse loop: current token type: {s}\n", .{@tagName(self.peek().type)});
+            }
+            if (self.peek().type == .EOF) break;
+
+            try statements.append(try self.statement());
+        }
+
+        return statements;
+    }
+
+    fn statement(self: *Parser) ParserError!Stmt {
+        if (try self.match(.PRINT)) return self.printStatement();
+
+        return self.expressionStatement();
+    }
+
+    fn printStatement(self: *Parser) ParserError!Stmt {
+        if (DEBUG_LOGS) std.debug.print("print statement\n", .{});
+        const value = try self.expression();
+        if (DEBUG_LOGS) std.debug.print("After print expression, current token: {s}\n", .{@tagName(self.peek().type)});
+        _ = try self.consume(.SEMICOLON, "Expect ';' after value.\n");
+        return Stmt{ .print = .{ .expression = value } };
+    }
+
+    fn expressionStatement(self: *Parser) ParserError!Stmt {
+        if (DEBUG_LOGS) std.debug.print("expression statement peek: {s}\n", .{self.peek().lexeme});
+        const expr = try self.expression();
+        if (DEBUG_LOGS) std.debug.print("After expression, current token: {s}\n", .{@tagName(self.peek().type)});
+        _ = try self.consume(.SEMICOLON, "Expect ';' after expression.\n");
+        return Stmt{ .expression = .{ .expression = expr } };
     }
 
     fn expression(self: *Parser) ParserError!*Expr {
@@ -79,14 +156,16 @@ pub const Parser = struct {
 
         return try self.primary();
     }
-
     fn primary(self: *Parser) ParserError!*Expr {
+        if (DEBUG_LOGS) std.debug.print("primary: current token type: {s}\n", .{@tagName(self.peek().type)});
+
         if (try self.match(.TRUE)) return try self.createExpression(.{ .literal = .{ .boolean = true } });
         if (try self.match(.FALSE)) return try self.createExpression(.{ .literal = .{ .boolean = false } });
         if (try self.match(.NIL)) return try self.createExpression(.{ .literal = .{ .nil = {} } });
 
         if (try self.match(.NUMBER)) {
             const token = self.previous();
+            if (DEBUG_LOGS) std.debug.print("Found NUMBER: {any}\n", .{token});
             if (token.literal) |literal| {
                 if (literal == .number) {
                     return try self.createExpression(.{ .literal = .{ .number = literal.number } });
@@ -97,12 +176,17 @@ pub const Parser = struct {
 
         if (try self.match(.STRING)) {
             const token = self.previous();
+            if (DEBUG_LOGS) std.debug.print("Found STRING: {s}\n", .{token.lexeme});
             if (token.literal) |literal| {
+                if (DEBUG_LOGS) std.debug.print("Literal type: {s}\n", .{@tagName(literal)});
                 if (literal == .string) {
                     return try self.createExpression(.{ .literal = .{ .string = literal.string } });
                 }
+            } else {
+                if (DEBUG_LOGS) std.debug.print("No literal value in token\n", .{});
             }
-            return ParserError.LiteralToStringParse;
+            // Return a meaningful default instead of error
+            return try self.createExpression(.{ .literal = .{ .string = token.lexeme } });
         }
 
         if (try self.match(.LEFT_PAREN)) {
@@ -119,6 +203,7 @@ pub const Parser = struct {
     }
 
     fn consume(self: *Parser, @"type": TokenType, errorMessage: []const u8) ParserError!Token {
+        if (DEBUG_LOGS) std.debug.print("consume: expecting {s}, got {s}\n", .{ @tagName(@"type"), @tagName(self.peek().type) });
         if (self.check(@"type")) return try self.advance();
 
         const writer = std.io.getStdErr().writer();
@@ -131,6 +216,7 @@ pub const Parser = struct {
         const expr = try self.allocator.create(Expr);
         errdefer self.allocator.destroy(expr);
         expr.* = value;
+        try self.allocated_expressions.append(expr);
         return expr;
     }
 
@@ -165,5 +251,9 @@ pub const Parser = struct {
         }
 
         return false;
+    }
+
+    pub fn parseExpression(self: *Parser) ParserError!*Expr {
+        return try self.expression();
     }
 };

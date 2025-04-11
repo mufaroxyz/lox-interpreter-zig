@@ -34,7 +34,9 @@ pub const Value = union(enum) {
         }
     }
 
-    pub fn format(self: Value, writer: anytype) !void {
+    pub fn format(self: Value, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
+        _ = fmt;
+        _ = options;
         switch (self) {
             .number => |n| try std.fmt.format(writer, "{d}", .{n}),
             .string => |s| try std.fmt.format(writer, "{s}", .{s}),

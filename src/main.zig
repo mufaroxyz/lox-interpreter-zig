@@ -18,7 +18,7 @@ pub fn main() !void {
     const command = args[1];
     const filename = args[2];
 
-    if (!std.mem.eql(u8, command, "tokenize") and !std.mem.eql(u8, command, "parse") and !std.mem.eql(u8, command, "evaluate")) {
+    if (!std.mem.eql(u8, command, "tokenize") and !std.mem.eql(u8, command, "parse") and !std.mem.eql(u8, command, "evaluate") and !std.mem.eql(u8, command, "run")) {
         std.debug.print("Unknown command: {s}\n", .{command});
         std.process.exit(1);
     }
@@ -42,23 +42,57 @@ pub fn main() !void {
         for (resolvedTokens) |token| {
             try printToken(token, allocator);
         }
+    }
 
-        if (scanner.hadError) {
-            std.process.exit(65);
-        }
+    if (scanner.hadError) {
+        std.process.exit(65);
     }
 
     if (std.mem.eql(u8, command, "parse")) {
-        const expr = Util.parseTokens(resolvedTokens);
+        var parser = Parser.init(resolvedTokens, allocator);
+        defer parser.deinit();
+        const expr = parser.parseExpression() catch |err| {
+            std.debug.print("Error during parsing: {s}\n", .{@errorName(err)});
+            std.process.exit(65);
+        };
+        // defer expr.deinit();
+
+        // std.debug.print("Successfully parsed {} statements\n", .{statements.items.len});
         try AstPrinter.print(writer, expr);
     }
 
     if (std.mem.eql(u8, command, "evaluate")) {
-        const parsedTokens = Util.parseTokens(resolvedTokens);
-        var interpreter = Interpreter.init();
-        try interpreter.interpret(parsedTokens, writer);
+        var parser = Parser.init(resolvedTokens, allocator);
+        defer parser.deinit();
 
-        // Check if any runtime errors occurred during interpretation
+        const expr = parser.parseExpression() catch |err| {
+            std.debug.print("Error during expression parsing: {s}\n", .{@errorName(err)});
+            std.process.exit(70);
+        };
+
+        var interpreter = Interpreter.init();
+        const result = interpreter.evaluate(expr);
+
+        if (interpreter.hadError()) {
+            std.process.exit(70);
+        }
+
+        try result.format("", .{}, writer);
+        try writer.writeByte('\n');
+    }
+
+    if (std.mem.eql(u8, command, "run")) {
+        var parser = Parser.init(resolvedTokens, allocator);
+        defer parser.deinit();
+        const statements = parser.parse() catch |err| {
+            std.debug.print("Error during parsing: {s}\n", .{@errorName(err)});
+            std.process.exit(65);
+        };
+        defer statements.deinit();
+
+        var interpreter = Interpreter.init();
+        try interpreter.interpret(statements);
+
         if (interpreter.hadError()) {
             std.process.exit(70);
         }
