@@ -160,6 +160,11 @@ pub const Value = union(enum) {
                 .string => Value.fromBoolean(if (negation orelse false) true else false),
                 else => error.TypeMismatch,
             },
+            .boolean => |l_bool| switch (other) {
+                .boolean => |r_bool| return Value.fromBoolean(if (negation orelse false) l_bool != r_bool else l_bool == r_bool),
+                .string => Value.fromBoolean(if (negation orelse false) true else false),
+                else => error.TypeMismatch,
+            },
             else => error.InvalidOperation,
         };
     }
