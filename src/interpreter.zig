@@ -43,9 +43,11 @@ pub const Interpreter = struct {
         switch (stmt) {
             .expression => |expr_stmt| {
                 _ = self.evaluate(expr_stmt.expression);
+                if (self.had_error) return;
             },
             .print => |print_stmt| {
                 const value = self.evaluate(print_stmt.expression);
+                if (self.had_error) return;
                 const writer = std.io.getStdOut().writer();
                 try value.format("", .{}, writer);
                 try writer.writeByte('\n');

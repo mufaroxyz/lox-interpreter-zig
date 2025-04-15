@@ -1,8 +1,2 @@
-print true != true;
-
-print "36
-10
-78
-";
-
-print "There should be an empty line above this.";
+print "60" + "hello";
+print true * (68 + 38);
